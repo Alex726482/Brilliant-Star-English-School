@@ -58,11 +58,16 @@ create table if not exists public.inquiries (
   id uuid primary key default gen_random_uuid(),
   parent_name text not null check (char_length(parent_name) between 1 and 100),
   phone text not null check (char_length(phone) between 5 and 30),
+  parent_email text check (parent_email is null or char_length(parent_email) <= 160),
   student_class text not null check (char_length(student_class) between 1 and 40),
   message text not null default '' check (char_length(message) <= 1500),
   status text not null default 'New' check (status in ('New','Reviewed')),
   created_at timestamptz not null default now()
 );
+
+-- Safe to rerun when upgrading a project that already has the inquiry table.
+alter table public.inquiries
+  add column if not exists parent_email text check (parent_email is null or char_length(parent_email) <= 160);
 
 create index if not exists news_public_order on public.news (published, display_order asc, published_at desc, created_at desc);
 create index if not exists events_public_order on public.events (published, event_date asc);
